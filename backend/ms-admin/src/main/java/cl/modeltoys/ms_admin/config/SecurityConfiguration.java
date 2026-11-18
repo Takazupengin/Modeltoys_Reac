@@ -25,7 +25,9 @@ public class SecurityConfiguration {
     return http.csrf(c -> c.disable())
         .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(a
-            -> a.requestMatchers("/actuator/health", "/actuator/health/**")
+            -> a.requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/**")
+                .permitAll()
+                .requestMatchers("/actuator/health", "/actuator/health/**")
                 .permitAll()
                 .requestMatchers("/api/admin/**")
                 .hasRole("ADMIN")
