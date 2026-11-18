@@ -45,6 +45,8 @@ public class GatewaySecurityConfiguration {
         .authorizeExchange(a
             -> a.pathMatchers(HttpMethod.OPTIONS, "/**")
                 .permitAll()
+                .pathMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/**")
+                .permitAll()
                 .pathMatchers("/actuator/health", "/actuator/health/**")
                 .permitAll()
                 .pathMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login")

@@ -93,7 +93,7 @@ services:
       ADMIN_SERVICE_URL: http://ms-admin:8083
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173,http://localhost:8088}
     ports:
-      - "127.0.0.1:8080:8080"
+      - "8080:8080"
     depends_on:
       ms-usuarios:
         condition: service_healthy
@@ -110,7 +110,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "127.0.0.1:8088:80"
+      - "8088:80"
     depends_on:
       gateway:
         condition: service_healthy
