@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { api, setAccessToken } from './api';
-afterEach(() => { setAccessToken(null); vi.unstubAllGlobals(); });
+afterEach(() => {
+  setAccessToken(null);
+  sessionStorage.clear();
+  vi.unstubAllGlobals();
+});
 describe('Cliente HTTP', () => {
   it('envía el JWT en memoria y no lo persiste en el navegador', async () => {
     const fetch = vi.fn().mockImplementation(async () => new Response('[]', { status: 200 }));
@@ -17,5 +21,18 @@ describe('Cliente HTTP', () => {
   it('muestra el error de negocio del servidor', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ detail: 'Producto agotado' }), { status: 409 })));
     await expect(api.add('RX-78-2')).rejects.toThrow('Producto agotado');
+  });
+  it('reutiliza el UUID de invitado al servir la tienda por HTTP', async () => {
+    const getRandomValues = vi.fn((bytes) => bytes.fill(0xab));
+    const fetch = vi.fn(async () => new Response('{"items":[]}'));
+    vi.stubGlobal('crypto', { getRandomValues });
+    vi.stubGlobal('fetch', fetch);
+
+    await api.cart();
+    await api.cart();
+
+    const guestId = 'abababab-abab-4bab-abab-abababababab';
+    expect(getRandomValues).toHaveBeenCalledTimes(1);
+    expect(fetch.mock.calls.map(([, request]) => request.headers['X-Guest-Id'])).toEqual([guestId, guestId]);
   });
 });

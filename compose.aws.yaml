@@ -1,7 +1,7 @@
 services:
   frontend:
     ports:
-      - "8088:80"
+      - "80:80"
     build:
       context: ./frontend
       args:

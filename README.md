@@ -32,9 +32,21 @@ El generador crea contraseñas aleatorias y claves RSA 3072 en `.env`, permisos 
 docker compose up -d --force-recreate ms-usuarios
 ```
 
-En este equipo se dejó una cuenta de demostración configurada en `.env`; revisa sus valores localmente. No hay contraseña predeterminada embebida en React. El bootstrap no promueve cuentas públicas preexistentes ni modifica claves de usuarios ya creados.
+Cada entorno define su propia cuenta de demostración en `.env`. El bootstrap crea el administrador al iniciar si su correo aún no existe.
 
-Para detener sin borrar datos: `docker compose stop`. Nunca uses `down -v` si quieres conservar `mysql_data`. Para volúmenes existentes, sigue el aprovisionamiento aditivo de [base de datos](docs/base-datos.md); los scripts de inicialización no se repiten automáticamente.
+Para detener y conservar los datos, usa `docker compose stop`. El volumen `mysql_data` conserva MySQL y los scripts de inicialización se ejecutan al crear un volumen nuevo.
+
+## Desplegar en EC2
+
+Con la instancia en ejecución, configura `.env` en la raíz del proyecto y deja `VITE_API_URL=` para que el frontend envíe las solicitudes al mismo origen. Permite HTTP TCP 80 en el grupo de seguridad y levanta la aplicación.
+
+```sh
+docker compose -f compose.yaml -f compose.aws.yaml up -d --build --wait
+docker compose -f compose.yaml -f compose.aws.yaml ps
+curl -f http://localhost/api/productos
+```
+
+La tienda se abre en `http://<IP_PUBLICA>/`. Nginx envía `/api` al Gateway. En una ejecución local, abre Swagger UI en `http://localhost:8080/swagger-ui.html`.
 
 ## Probar cada etapa
 
@@ -82,6 +94,4 @@ Vite sirve en 5173 y envía `/api` a Gateway 8080. Nginx usa ese mismo contrato 
 
 No hay pasarela de pago ni facturación: se registran órdenes pendientes. Stock representa la disponibilidad booleana existente en React; no se inventaron unidades físicas. JWT solo en memoria: recargar requiere ingresar de nuevo. Los JWT previos a una baja pueden seguir autorizando carrito hasta expirar; no hay revocación distribuida. No se importaron los datos de negocio guardados por versiones antiguas en localStorage; retira conscientemente las antiguas claves `usuarios_db`/`usuario_sesion` de tu navegador si contienen contraseñas.
 
-Arquitectura, decisiones, límites y estado de verificación: [arquitectura](docs/arquitectura.md), [endpoints](docs/endpoints.md), [base de datos](docs/base-datos.md). La revisión visual con Browser quedó pendiente por un error de la herramienta; las pruebas de componentes usan jsdom.
-
-Validación ejecutada: `mvn clean verify` (12 pruebas), suites MySQL (7 usuarios + 2 carrito), lint y 19 pruebas React, build de producción, imágenes Docker y recorrido integrado HTTP correctos. El script integrado verifica también checkout concurrente y CORS. Ver límites y hallazgos de dependencias en la arquitectura.
+Pruebas realizadas en el proyecto: `mvn clean verify` (12 pruebas), suites MySQL (7 de usuarios y 2 de carrito), 20 pruebas React, compilación de producción y recorrido HTTP integrado. El script integrado comprueba también checkout concurrente y CORS.

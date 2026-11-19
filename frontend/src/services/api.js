@@ -1,9 +1,21 @@
 const base = import.meta.env.VITE_API_URL || '';
 let token = null;
 export const setAccessToken = (value) => { token = value || null; };
+function createGuestId() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  return [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20)].join('-');
+}
 function guestId() {
   let id = sessionStorage.getItem('modeltoys_guest_id');
-  if (!id) { id = crypto.randomUUID(); sessionStorage.setItem('modeltoys_guest_id', id); }
+  if (!id) {
+    id = createGuestId();
+    sessionStorage.setItem('modeltoys_guest_id', id);
+  }
   return id;
 }
 export async function request(path, { method = 'GET', body, guest = false } = {}) {
